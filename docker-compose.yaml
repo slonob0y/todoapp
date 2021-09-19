@@ -1,0 +1,38 @@
+# Use root/example as user/password credentials
+version: "3.1"
+
+services:
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      - MONGO_INITDB_DATABASE=${MONGODB_NAME}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASS}
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGODB_USER}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGODB_PASS}
+      - ME_CONFIG_MONGODB_URL=${MONGODB_URI}
+
+  todo-server:
+    build: ./go-server
+    ports:
+      - 8080:8080
+    environment:
+      - DB_URI=${MONGODB_URI}
+      - DB_NAME=${MONGODB_NAME}
+      - DB_COLLECTION_NAME=${MONGODB_COLLECTION}
+    depends_on:
+      - mongo
+      - mongo-express
+
+  todo-client:
+    build: ./client
+    ports:
+      - 3000:8080
